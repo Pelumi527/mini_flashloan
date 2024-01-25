@@ -43,7 +43,7 @@ mod Error {
 #[starknet::contract]
 mod LilFlashLoan {
     use core::debug::PrintTrait;
-use core::array::Array;
+    use core::array::Array;
     use core::starknet::event::EventEmitter;
     use mini_flashloan::lil_flashloan::FlashBorrowerDispatcherTrait;
     use openzeppelin::access::ownable::OwnableComponent;
