@@ -31,6 +31,8 @@ trait ILilFlashLoan<TContractState> {
     fn set_flash_fee(ref self: TContractState, token_address: ContractAddress, fee: u256);
     fn max_flashloan(self: @TContractState, token_address: ContractAddress) -> u256;
     fn setSupportToken(ref self: TContractState, token_address: ContractAddress, isSupported: bool);
+    fn get_token_fee(self: @TContractState, token_address: ContractAddress) -> u256;
+    fn withdraw(ref self: TContractState, amount: u256, token_address: ContractAddress);
 }
 
 mod Error {
@@ -42,6 +44,7 @@ mod Error {
 
 #[starknet::contract]
 mod LilFlashLoan {
+    use openzeppelin::access::ownable::interface::IOwnable;
     use core::debug::PrintTrait;
     use core::array::Array;
     use core::starknet::event::EventEmitter;
@@ -77,7 +80,8 @@ mod LilFlashLoan {
         OwnableEvent: OwnableComponent::Event,
         FlashLoaned: FlashLoaned,
         FeeUpdated: FeeUpdated,
-        TokenSupportUpdated: TokenSupportUpdated
+        TokenSupportUpdated: TokenSupportUpdated,
+        Withdraw: Withdraw
     }
 
 
@@ -102,6 +106,13 @@ mod LilFlashLoan {
         #[key]
         token: ContractAddress,
         isSupported: bool,
+    }
+
+    #[derive(Drop, starknet::Event)]
+    struct Withdraw {
+        #[key]
+        token: ContractAddress,
+        amount: u256,
     }
 
 
@@ -170,7 +181,7 @@ mod LilFlashLoan {
         fn set_flash_fee(ref self: ContractState, token_address: ContractAddress, fee: u256) {
             self.ownable.assert_only_owner();
             self.check_is_token_supported(token_address);
-            assert(fee < 10000, Error::INVALID_PERCENTAGE);
+            assert(fee <= 10000, Error::INVALID_PERCENTAGE);
             self.token_fee.write(token_address, fee);
             self.emit(FeeUpdated { token: token_address, fee })
         }
@@ -185,6 +196,17 @@ mod LilFlashLoan {
             self.ownable.assert_only_owner();
             self.supportedToken.write(token_address, isSupported);
             self.emit(TokenSupportUpdated { token: token_address, isSupported })
+        }
+        fn get_token_fee(self: @ContractState, token_address: ContractAddress) -> u256 {
+            self.check_is_token_supported(token_address);
+            self.token_fee.read(token_address)
+        }
+        fn withdraw(ref self: ContractState, amount: u256, token_address: ContractAddress) {
+            self.ownable.assert_only_owner();
+            self.check_is_token_supported(token_address);
+            let contract_address = get_contract_address();
+            IERC20Dispatcher { contract_address: token_address }.transfer(self.owner(), amount);
+            self.emit(Withdraw { token: token_address, amount })
         }
     }
 }

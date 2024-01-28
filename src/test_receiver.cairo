@@ -2,7 +2,7 @@ use starknet::{get_caller_address, ContractAddress};
 
 
 #[starknet::interface]
-trait FlashBorrower<TContractState> {
+trait ITestReceiver<TContractState> {
     // @param token_address The erc_20 token you are receiving your flashloan on
     // @param amount The amount of tokens lent.
     // @param fee The additional amount of tokens to repay.
@@ -14,6 +14,8 @@ trait FlashBorrower<TContractState> {
         fee: u256,
         data: felt252
     );
+    fn setRepay(ref self: TContractState, status: bool);
+    fn setRepayFee(ref self: TContractState, status: bool);
 }
 
 #[starknet::contract]
@@ -38,7 +40,7 @@ mod TestReceiver {
     }
 
     #[external(v0)]
-    impl TestReceiverImpl of super::FlashBorrower<ContractState> {
+    impl TestReceiverImpl of super::ITestReceiver<ContractState> {
         fn onFlashLoan(
             ref self: ContractState,
             token_address: ContractAddress,
@@ -59,6 +61,12 @@ mod TestReceiver {
             let ownedFee = ILilFlashLoanDispatcher { contract_address: msgSender }
                 .get_flash_fee(token_address, amount);
             ITestTokenDispatcher { contract_address: token_address }.mint_to(msgSender, ownedFee);
+        }
+        fn setRepay(ref self: ContractState, status: bool) {
+            self.shouldRepay.write(status);
+        }
+        fn setRepayFee(ref self: ContractState, status: bool) {
+            self.shouldRepayFee.write(status);
         }
     }
 }
