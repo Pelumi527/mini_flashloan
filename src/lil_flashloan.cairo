@@ -33,6 +33,7 @@ trait ILilFlashLoan<TContractState> {
     fn setSupportToken(ref self: TContractState, token_address: ContractAddress, isSupported: bool);
     fn get_token_fee(self: @TContractState, token_address: ContractAddress) -> u256;
     fn withdraw(ref self: TContractState, amount: u256, token_address: ContractAddress);
+    fn is_token_supported(self: @TContractState, token_address: ContractAddress) -> bool;
 }
 
 mod Error {
@@ -120,15 +121,6 @@ mod LilFlashLoan {
     fn constructor(ref self: ContractState, _supportedToken: ContractAddress, fee: u256) {
         let caller = get_caller_address();
         self.ownable.initializer(caller);
-        //let mut i: usize = 0;
-        // loop {
-        //     if i == _supportedToken.len() {
-        //         break;
-        //     }
-        //     let tokenAddress = *_supportedToken.at(i);
-        //     self.supportedToken.write(tokenAddress, true);
-        //     self.token_fee.write(tokenAddress, fee);
-        // }
 
         self.supportedToken.write(_supportedToken, true);
         self.token_fee.write(_supportedToken, fee);
@@ -207,6 +199,9 @@ mod LilFlashLoan {
             let contract_address = get_contract_address();
             IERC20Dispatcher { contract_address: token_address }.transfer(self.owner(), amount);
             self.emit(Withdraw { token: token_address, amount })
+        }
+        fn is_token_supported(self: @ContractState, token_address: ContractAddress) -> bool {
+            self.supportedToken.read(token_address)
         }
     }
 }

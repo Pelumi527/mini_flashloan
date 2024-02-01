@@ -43,7 +43,6 @@ mod TestToken {
         let symbol = 'TT';
 
         self.erc20.initializer(name, symbol);
-    //  self.erc20._mint(recipient, initial_supply);
     }
 
     #[external(v0)]

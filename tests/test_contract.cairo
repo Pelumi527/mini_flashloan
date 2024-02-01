@@ -224,6 +224,42 @@ fn test_manager_can_withdraw() {
         IERC20Dispatcher { contract_address: test_token }.balance_of(manager) == 50, 'Wrong Balance'
     );
 }
+
+#[test]
+fn test_manager_can_add_support_token() {
+    let manager = get_contract_address();
+    let (test_token, test_receiver, lil_flashloan) = setup();
+    let mut spy = spy_events(SpyOn::One(lil_flashloan));
+    ILilFlashLoanDispatcher { contract_address: lil_flashloan }.setSupportToken(test_token, true);
+    spy
+        .assert_emitted(
+            @array![
+                (
+                    lil_flashloan,
+                    LilFlashLoan::Event::TokenSupportUpdated(
+                        LilFlashLoan::TokenSupportUpdated { token: test_token, isSupported: true }
+                    )
+                )
+            ]
+        );
+    let is_supported = ILilFlashLoanDispatcher { contract_address: lil_flashloan }
+        .is_token_supported(test_token);
+    assert(is_supported, 'Token is Not Supported');
+}
+
+#[test]
+#[should_panic(expected: ('Caller is not the owner',))]
+fn test_non_manager_cannot_set_supported_token () {
+    let (test_token, test_receiver, lil_flashloan) = setup();
+    let mut spy = spy_events(SpyOn::One(lil_flashloan));
+    let caller_address: ContractAddress = 123.try_into().unwrap();
+    start_prank(CheatTarget::One(lil_flashloan), caller_address);
+    ILilFlashLoanDispatcher { contract_address: lil_flashloan }.setSupportToken(test_token, true);
+    let is_supported = ILilFlashLoanDispatcher { contract_address: lil_flashloan }
+        .is_token_supported(test_token);
+    assert(!is_supported, 'Token is Supported');
+
+}
 #[test]
 #[should_panic(expected: ('Caller is not the owner',))]
 fn test_non_manager_cannot_withdraw() {
