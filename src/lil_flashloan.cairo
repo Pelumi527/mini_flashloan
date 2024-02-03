@@ -30,7 +30,9 @@ trait ILilFlashLoan<TContractState> {
     ) -> u256;
     fn set_flash_fee(ref self: TContractState, token_address: ContractAddress, fee: u256);
     fn max_flashloan(self: @TContractState, token_address: ContractAddress) -> u256;
-    fn setSupportToken(ref self: TContractState, token_address: ContractAddress, isSupported: bool);
+    fn set_support_token(
+        ref self: TContractState, token_address: ContractAddress, isSupported: bool
+    );
     fn get_token_fee(self: @TContractState, token_address: ContractAddress) -> u256;
     fn withdraw(ref self: TContractState, amount: u256, token_address: ContractAddress);
     fn is_token_supported(self: @TContractState, token_address: ContractAddress) -> bool;
@@ -182,7 +184,7 @@ mod LilFlashLoan {
             let contract_address = get_contract_address();
             IERC20Dispatcher { contract_address: token_address }.balance_of(contract_address)
         }
-        fn setSupportToken(
+        fn set_support_token(
             ref self: ContractState, token_address: ContractAddress, isSupported: bool
         ) {
             self.ownable.assert_only_owner();

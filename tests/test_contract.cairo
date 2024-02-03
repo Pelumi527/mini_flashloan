@@ -58,7 +58,7 @@ fn test_can_flashloan() {
     let mut spy_one = spy_events(SpyOn::Multiple(array![lil_flashloan, test_token, test_receiver]));
 
     ITestTokenDispatcher { contract_address: test_token }.mint_to(lil_flashloan, 100);
-    ILilFlashLoanDispatcher { contract_address: lil_flashloan }.setSupportToken(test_token, true);
+    ILilFlashLoanDispatcher { contract_address: lil_flashloan }.set_support_token(test_token, true);
     ILilFlashLoanDispatcher { contract_address: lil_flashloan }
         .flashloan(test_receiver, test_token, 100, '');
 
@@ -85,7 +85,7 @@ fn test_can_flashloan() {
 fn test_can_flashloan_with_fees() {
     let (test_token, test_receiver, lil_flashloan) = setup();
     ITestTokenDispatcher { contract_address: test_token }.mint_to(lil_flashloan, 100);
-    ILilFlashLoanDispatcher { contract_address: lil_flashloan }.setSupportToken(test_token, true);
+    ILilFlashLoanDispatcher { contract_address: lil_flashloan }.set_support_token(test_token, true);
     ILilFlashLoanDispatcher { contract_address: lil_flashloan }
         .set_flash_fee(test_token, 1000); //10%
     ILilFlashLoanDispatcher { contract_address: lil_flashloan }
@@ -100,7 +100,7 @@ fn test_can_flashloan_with_fees() {
 fn test_cannot_flashloan_if_not_enough_balance() {
     let (test_token, test_receiver, lil_flashloan) = setup();
     ITestTokenDispatcher { contract_address: test_token }.mint_to(lil_flashloan, 100);
-    ILilFlashLoanDispatcher { contract_address: lil_flashloan }.setSupportToken(test_token, true);
+    ILilFlashLoanDispatcher { contract_address: lil_flashloan }.set_support_token(test_token, true);
     ILilFlashLoanDispatcher { contract_address: lil_flashloan }
         .flashloan(test_receiver, test_token, 110, '');
     let lil_flashloan_balance = IERC20Dispatcher { contract_address: test_token }
@@ -114,7 +114,7 @@ fn test_flashloan_reverts_if_not_repaid() {
     let (test_token, test_receiver, lil_flashloan) = setup();
     ITestReceiverDispatcher { contract_address: test_receiver }.setRepay(false);
     ITestTokenDispatcher { contract_address: test_token }.mint_to(lil_flashloan, 100);
-    ILilFlashLoanDispatcher { contract_address: lil_flashloan }.setSupportToken(test_token, true);
+    ILilFlashLoanDispatcher { contract_address: lil_flashloan }.set_support_token(test_token, true);
     ILilFlashLoanDispatcher { contract_address: lil_flashloan }
         .flashloan(test_receiver, test_token, 100, '');
     let lil_flashloan_balance = IERC20Dispatcher { contract_address: test_token }
@@ -128,7 +128,7 @@ fn test_flashloan_reverts_if_fee_not_repaid() {
     let (test_token, test_receiver, lil_flashloan) = setup();
     ITestReceiverDispatcher { contract_address: test_receiver }.setRepayFee(false);
     ITestTokenDispatcher { contract_address: test_token }.mint_to(lil_flashloan, 100);
-    ILilFlashLoanDispatcher { contract_address: lil_flashloan }.setSupportToken(test_token, true);
+    ILilFlashLoanDispatcher { contract_address: lil_flashloan }.set_support_token(test_token, true);
     ILilFlashLoanDispatcher { contract_address: lil_flashloan }
         .set_flash_fee(test_token, 1000); //10%
     ILilFlashLoanDispatcher { contract_address: lil_flashloan }
@@ -143,7 +143,7 @@ fn test_manager_can_set_fee() {
     let (test_token, test_receiver, lil_flashloan) = setup();
     let fee: u256 = 1000;
     let mut spy = spy_events(SpyOn::One(lil_flashloan));
-    ILilFlashLoanDispatcher { contract_address: lil_flashloan }.setSupportToken(test_token, true);
+    ILilFlashLoanDispatcher { contract_address: lil_flashloan }.set_support_token(test_token, true);
     assert(
         ILilFlashLoanDispatcher { contract_address: lil_flashloan }.get_token_fee(test_token) == 0,
         'Token Fee Set'
@@ -170,7 +170,7 @@ fn test_manager_can_set_fee() {
 #[should_panic(expected: ('INVALID_PERCENTAGE',))]
 fn test_fee_should_not_exceed_100_percent() {
     let (test_token, test_receiver, lil_flashloan) = setup();
-    ILilFlashLoanDispatcher { contract_address: lil_flashloan }.setSupportToken(test_token, true);
+    ILilFlashLoanDispatcher { contract_address: lil_flashloan }.set_support_token(test_token, true);
     assert(
         ILilFlashLoanDispatcher { contract_address: lil_flashloan }.get_token_fee(test_token) == 0,
         'Token Fee Set'
@@ -185,7 +185,7 @@ fn test_fee_should_not_exceed_100_percent() {
 #[should_panic(expected: ('Caller is not the owner',))]
 fn test_non_manager_cannot_set_fee() {
     let (test_token, test_receiver, lil_flashloan) = setup();
-    ILilFlashLoanDispatcher { contract_address: lil_flashloan }.setSupportToken(test_token, true);
+    ILilFlashLoanDispatcher { contract_address: lil_flashloan }.set_support_token(test_token, true);
     assert(
         ILilFlashLoanDispatcher { contract_address: lil_flashloan }.get_token_fee(test_token) == 0,
         'Token Fee Set'
@@ -203,7 +203,7 @@ fn test_manager_can_withdraw() {
     let manager = get_contract_address();
     let (test_token, test_receiver, lil_flashloan) = setup();
     let mut spy = spy_events(SpyOn::One(lil_flashloan));
-    ILilFlashLoanDispatcher { contract_address: lil_flashloan }.setSupportToken(test_token, true);
+    ILilFlashLoanDispatcher { contract_address: lil_flashloan }.set_support_token(test_token, true);
     ITestTokenDispatcher { contract_address: test_token }.mint_to(lil_flashloan, 100);
     assert(
         IERC20Dispatcher { contract_address: test_token }.balance_of(manager) == 0, 'Has a balance'
@@ -230,7 +230,7 @@ fn test_manager_can_add_support_token() {
     let manager = get_contract_address();
     let (test_token, test_receiver, lil_flashloan) = setup();
     let mut spy = spy_events(SpyOn::One(lil_flashloan));
-    ILilFlashLoanDispatcher { contract_address: lil_flashloan }.setSupportToken(test_token, true);
+    ILilFlashLoanDispatcher { contract_address: lil_flashloan }.set_support_token(test_token, true);
     spy
         .assert_emitted(
             @array![
@@ -249,23 +249,22 @@ fn test_manager_can_add_support_token() {
 
 #[test]
 #[should_panic(expected: ('Caller is not the owner',))]
-fn test_non_manager_cannot_set_supported_token () {
+fn test_non_manager_cannot_set_supported_token() {
     let (test_token, test_receiver, lil_flashloan) = setup();
     let mut spy = spy_events(SpyOn::One(lil_flashloan));
     let caller_address: ContractAddress = 123.try_into().unwrap();
     start_prank(CheatTarget::One(lil_flashloan), caller_address);
-    ILilFlashLoanDispatcher { contract_address: lil_flashloan }.setSupportToken(test_token, true);
+    ILilFlashLoanDispatcher { contract_address: lil_flashloan }.set_support_token(test_token, true);
     let is_supported = ILilFlashLoanDispatcher { contract_address: lil_flashloan }
         .is_token_supported(test_token);
     assert(!is_supported, 'Token is Supported');
-
 }
 #[test]
 #[should_panic(expected: ('Caller is not the owner',))]
 fn test_non_manager_cannot_withdraw() {
     let manager = get_contract_address();
     let (test_token, test_receiver, lil_flashloan) = setup();
-    ILilFlashLoanDispatcher { contract_address: lil_flashloan }.setSupportToken(test_token, true);
+    ILilFlashLoanDispatcher { contract_address: lil_flashloan }.set_support_token(test_token, true);
     ITestTokenDispatcher { contract_address: test_token }.mint_to(lil_flashloan, 100);
     assert(
         IERC20Dispatcher { contract_address: test_token }.balance_of(manager) == 0, 'Has a balance'
